@@ -7,6 +7,18 @@
             <v-card-text class="title">
               {{ currentDoc.text }}
             </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                small
+                color="primary"
+                outlined
+                @click.prevent.stop="_copyText"
+              >
+                <v-icon left>mdi-content-copy</v-icon>
+                Copy
+              </v-btn>
+            </v-card-actions>
           </v-card>
           <seq2seq-box
             :text="currentDoc.text"
@@ -61,6 +73,35 @@ export default {
   },
 
   methods: {
+    _copyText() {
+      const text = this.currentDoc.text
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          console.log('Text copied to clipboard')
+        }).catch(err => {
+          console.error('Clipboard API failed:', err)
+          this._fallbackCopy(text)
+        })
+      } else {
+        this._fallbackCopy(text)
+      }
+    },
+    _fallbackCopy(text) {
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        console.log('Text copied to clipboard (fallback method)')
+      } catch (err) {
+        console.error('Copy failed:', err)
+      }
+    },
     _deleteAnnotation(annotationId) {
       this.currentDoc.annotations = this.currentDoc.annotations.filter(
         (item) => item.id !== annotationId

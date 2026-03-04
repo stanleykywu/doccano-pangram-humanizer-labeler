@@ -111,17 +111,30 @@ export default Vue.extend({
       this.$emit('delete:annotation', annotationId)
     },
     copyToClipboard(text: string) {
-      navigator.clipboard.writeText(text).then(() => {
-        // Optional: You can add a toast notification here
-      }).catch(() => {
-        // Fallback for older browsers
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          console.log('Text copied to clipboard')
+        }).catch(() => {
+          this.fallbackCopy(text)
+        })
+      } else {
+        this.fallbackCopy(text)
+      }
+    },
+    fallbackCopy(text: string) {
+      try {
         const textarea = document.createElement('textarea')
         textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
         document.body.appendChild(textarea)
         textarea.select()
         document.execCommand('copy')
         document.body.removeChild(textarea)
-      })
+        console.log('Text copied to clipboard (fallback method)')
+      } catch (err) {
+        console.error('Copy failed:', err)
+      }
     },
     compositionStart() {
       this.isComposing = true
