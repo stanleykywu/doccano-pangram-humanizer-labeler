@@ -16,6 +16,18 @@
     <template #content>
       <v-card class="mb-5">
         <v-card-text class="title text-pre-wrap">{{ example.text }}</v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            small
+            color="primary"
+            outlined
+            @click.prevent.stop="copyText(example.text)"
+          >
+            <v-icon left>mdi-content-copy</v-icon>
+            Copy
+          </v-btn>
+        </v-card-actions>
       </v-card>
       <seq2seq-box
         :text="example.text"
@@ -97,6 +109,34 @@ export default {
       }
     })
 
+    const copyText = (text) => {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          console.log('Text copied to clipboard')
+        }).catch(() => {
+          fallbackCopy(text)
+        })
+      } else {
+        fallbackCopy(text)
+      }
+    }
+
+    const fallbackCopy = (text) => {
+      try {
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+        console.log('Text copied to clipboard (fallback method)')
+      } catch (err) {
+        console.error('Copy failed:', err)
+      }
+    }
+
     return {
       ...toRefs(labelState),
       ...toRefs(exampleState),
@@ -108,7 +148,8 @@ export default {
       update,
       confirm,
       enableAutoLabeling,
-      projectId
+      projectId,
+      copyText
     }
   }
 }
