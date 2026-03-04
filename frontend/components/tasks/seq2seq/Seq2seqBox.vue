@@ -25,19 +25,24 @@
         />
       </template>
       <template #[`item.text`]="{ item }">
-        <v-edit-dialog>
-          <span class="title" style="font-weight: 400">
-            {{ item.text }}
-          </span>
-          <template #input>
-            <v-textarea
-              :value="item.text"
-              :label="$t('generic.edit')"
-              autofocus
-              @change="update(item.id, $event)"
-            />
-          </template>
-        </v-edit-dialog>
+        <div class="d-flex align-center justify-space-between">
+          <v-edit-dialog>
+            <span class="title" style="font-weight: 400">
+              {{ item.text }}
+            </span>
+            <template #input>
+              <v-textarea
+                :value="item.text"
+                :label="$t('generic.edit')"
+                autofocus
+                @change="update(item.id, $event)"
+              />
+            </template>
+          </v-edit-dialog>
+          <v-icon small class="ml-2" @click="copyToClipboard(item.text)">
+            {{ mdiContentCopy }}
+          </v-icon>
+        </div>
       </template>
       <template #[`item.action`]="{ item }">
         <v-icon small @click="remove(item.id)">
@@ -50,7 +55,7 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { mdiPencil, mdiDeleteOutline } from '@mdi/js'
+import { mdiPencil, mdiDeleteOutline, mdiContentCopy } from '@mdi/js'
 
 export default Vue.extend({
   props: {
@@ -79,7 +84,8 @@ export default Vue.extend({
       isComposing: false,
       hasCompositionJustEnded: false,
       mdiPencil,
-      mdiDeleteOutline
+      mdiDeleteOutline,
+      mdiContentCopy
     }
   },
 
@@ -103,6 +109,19 @@ export default Vue.extend({
     },
     remove(annotationId: number) {
       this.$emit('delete:annotation', annotationId)
+    },
+    copyToClipboard(text: string) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Optional: You can add a toast notification here
+      }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        document.body.appendChild(textarea)
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      })
     },
     compositionStart() {
       this.isComposing = true
